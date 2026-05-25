@@ -1,10 +1,9 @@
-
 name: Bank Frontend Pipeline
 
 on:
   push:
     branches:
-      - main
+    - main
   ## pull_request:
   ##   branches:
   ##     - cicd
@@ -20,7 +19,6 @@ jobs:
         repository: Bank-App-Project/Bank-Frontend-Repo
         ref: main
 
-
     - name: Log in to awscli
       uses: aws-actions/configure-aws-credentials@v3
       with:
@@ -31,20 +29,18 @@ jobs:
     - name: Verify AWS credentials
       run: aws sts get-caller-identity
 
-
     - name: Build container image
       run: docker build -t bank-app-frontend:latest .
 
     - name: Log in to ECR with short-lived credentials
       run: |
         aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${{ vars.ECR_REPO }}
-  
+
     - name: Tag Docker image
       run: docker tag bank-app-frontend:latest ${{ vars.ECR_REPO }}:${{ github.run_number }}
-    
+
     - name: Push image to ECR
       run: docker push ${{ vars.ECR_REPO }}:${{ github.run_number }}
-
 
     - name: Clean up Docker image locally
       run: |
@@ -54,27 +50,25 @@ jobs:
     - name: Clean up GitHub repo on runner
       run: rm -rf ./*
 
-
-  
   Continues-Update_k8s_manifest:
     runs-on: ubuntu-latest
     needs: Continues-Integration_build_and_push
     steps:
     - name: Checkout repository.
       env:
-          GIT_USERNAME: ${{ secrets.GIT_USERNAME }}
-          GIT_PASSWORD: ${{ secrets.GIT_PASSWORD }}
+        GIT_USERNAME: ${{ secrets.GIT_USERNAME }}
+        GIT_PASSWORD: ${{ secrets.GIT_PASSWORD }}
       run: |
-         git clone https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/Bank-App-Project/k8s-manifest.git
-         
-         cd kubernetes-manifest
-         git config --global user.email "craigfedrick@gmail.com"
-         git config --global user.name "POD7-cohort5"
+        git clone https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/Bank-App-Project/k8s-manifest.git
 
-         sed -i "s+${{ vars.ECR_REPO }}:.*+${{ vars.ECR_REPO }}:${{ github.run_number }}+g" ./bank-project/frontend.yaml
+        cd k8s-manifest
+        git config --global user.email "craigfedrick@gmail.com"
+        git config --global user.name "POD7-cohort5"
 
-         cat ./bank-project/frontend.yaml | grep -q "${{ vars.ECR_REPO }}:${{ github.run_number }}"
+        sed -i "s+${{ vars.ECR_REPO }}:.*+${{ vars.ECR_REPO }}:${{ github.run_number }}+g" ./bank-project/frontend.yaml
 
-         git add bank-project/frontend.yaml
-         git commit -m "Update frontend image to version ${{ github.run_number }}"
-         git push origin main
+        cat ./bank-project/frontend.yaml | grep -q "${{ vars.ECR_REPO }}:${{ github.run_number }}"
+
+        git add bank-project/frontend.yaml
+        git commit -m "Update frontend image to version ${{ github.run_number }}"
+        git push origin main
