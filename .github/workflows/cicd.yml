@@ -59,7 +59,7 @@ jobs:
         GIT_USERNAME: ${{ secrets.GIT_USERNAME }}
         GIT_PASSWORD: ${{ secrets.GIT_PASSWORD }}
       run: |
-        git clone https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/Bank-App-Project/k8s-manifest.git
+        git clone https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/POD7-cohort5/Bank-App-Project/k8s-manifest.git
 
         cd k8s-manifest
         git config --global user.email "craigfedrick@gmail.com"
