@@ -40,16 +40,16 @@ jobs:
         aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${{ vars.ECR_REPO }}
   
     - name: Tag Docker image
-      run: docker tag bank-app-frontend:latest ${{ vars.ECR_REPO }}/bank-frontend:${{ github.run_number }}
+      run: docker tag bank-app-frontend:latest ${{ vars.ECR_REPO }}:${{ github.run_number }}
     
     - name: Push image to ECR
-      run: docker push ${{ vars.ECR_REPO }}/bank-frontend:${{ github.run_number }}
+      run: docker push ${{ vars.ECR_REPO }}:${{ github.run_number }}
 
 
     - name: Clean up Docker image locally
       run: |
         docker rmi bank-app-frontend:latest
-        docker rmi ${{ vars.ECR_REPO }}/bank-frontend:${{ github.run_number }}
+        docker rmi ${{ vars.ECR_REPO }}:${{ github.run_number }}
 
     - name: Clean up GitHub repo on runner
       run: rm -rf ./*
@@ -71,9 +71,9 @@ jobs:
          git config --global user.email "craigfedrick@gmail.com"
          git config --global user.name "POD7-cohort5"
 
-         sed -i "s+${{ vars.ECR_REPO }}/bank-frontend:.*+${{ vars.ECR_REPO }}/bank-frontend:${{ github.run_number }}+g" ./bank-project/frontend.yaml
+         sed -i "s+${{ vars.ECR_REPO }}:.*+${{ vars.ECR_REPO }}:${{ github.run_number }}+g" ./bank-project/frontend.yaml
 
-         cat ./bank-project/frontend.yaml | grep -q "${{ vars.ECR_REPO }}/bank-frontend:${{ github.run_number }}"
+         cat ./bank-project/frontend.yaml | grep -q "${{ vars.ECR_REPO }}:${{ github.run_number }}"
 
          git add bank-project/frontend.yaml
          git commit -m "Update frontend image to version ${{ github.run_number }}"
